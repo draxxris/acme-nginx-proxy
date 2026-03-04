@@ -16,3 +16,21 @@ steps:
       - apk add make
       - echo "$DOCKER_HUB_TOKEN" | docker login -u "$DOCKER_HUB_USER" --password-stdin
       - make publish
+
+  - name: mail
+    image: deblan/woodpecker-email
+    #environment:
+    #  SMTP_DSN: "${SMTP_DSN}"
+    settings:
+      dsn: "${SMTP_DSN}"
+      from:
+        address: "${SMTP_FROM}"
+        name: "Woodpecker-CI"
+      recipients: "${SMTP_TO}"
+      recipients_only: false
+      content:
+        subject: "[{{ pipeline.status }}] {{ repo.full_name }} ({{ commit.branch }} - {{ commit.sha[0:8] }}"
+        body: |
+          {{ commit.sha }}<br>
+          {{ pipeline.status }}<br>
+          {{ commit.author_email }}<br>
