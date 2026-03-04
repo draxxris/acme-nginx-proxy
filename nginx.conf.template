@@ -1,0 +1,35 @@
+server {
+    listen ${LISTEN} ssl;
+    http2 on;
+    server_name ${DOMAINS};
+
+    ssl_certificate /acme.sh/${PRIMARY_DOMAIN}_ecc/fullchain.cer;
+    ssl_certificate_key /acme.sh/${PRIMARY_DOMAIN}_ecc/${PRIMARY_DOMAIN}.key;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:50m;
+    ssl_session_tickets off;
+
+    # Modern configuration
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+
+    # OCSP Stapling
+    ssl_stapling on;
+    ssl_stapling_verify on;
+
+    # docker
+    resolver ${RESOLVER} valid=60s;
+    resolver_timeout 5s;
+
+    location / {
+        set $backend "${BACKEND}";
+        proxy_pass $backend;
+        proxy_ssl_verify off;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_buffering off;
+        proxy_request_buffering off;
+    }
+}

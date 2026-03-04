@@ -1,0 +1,18 @@
+---
+when:
+  - event: push
+    branch: main
+  - event: manual
+
+steps:
+  - name: publish
+    image: docker:29-cli
+    environment:
+      DOCKER_HUB_USER: { from_secret: DOCKER_HUB_USER }
+      DOCKER_HUB_TOKEN: { from_secret: DOCKER_HUB_TOKEN }
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    commands:
+      - apk add make
+      - echo "$DOCKER_HUB_TOKEN" | docker login -u "$DOCKER_HUB_USER" --password-stdin
+      - make publish
